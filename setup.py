@@ -15,14 +15,13 @@ def read_file(name):
         return f.read()
 
 try:
-    readme = read_file('README.rst'),
+    readme = read_file('README.rst')
     changes = read_file('CHANGES.rst')
 except IOError:
     readme = ""
     changes = ""
 
 project_url = 'https://github.com/Surgo/python-innosetup'
-
 
 setup(
     name='innosetup',
@@ -33,7 +32,7 @@ setup(
     url=project_url,
     download_url='%s/zipball/%s' % (project_url, __version__),
     description=__doc__,
-    long_description="%s\n\n%s" % (readme, changes),
+    long_description='%s\n\n%s' % (readme, changes),
     keywords=['distutils'],
     install_requires=['pywin32', 'py2exe', ],
     license='PSF',

@@ -1,7 +1,10 @@
-.. -*- restructuredtext -*-
-
 Changes
 -------
+
+0.6.6
+^^^^^
+
+* update readme.
 
 0.6.5
 ^^^^^

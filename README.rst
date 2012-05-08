@@ -1,5 +1,4 @@
-.. -*- restructuredtext -*-
-
+==========================
 A Python innosetup library
 ==========================
 
