@@ -1,171 +1,21 @@
-"""distutils extension module - create an installer by InnoSetup.
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-Requirements
-------------
-
-* Python 2.5 or later
-
-* `py2exe <http://pypi.python.org/pypi/py2exe>`_
-
-* `pywin32 <http://pypi.python.org/pypi/pywin32>`_
-
-* `InnoSetup <http://www.innosetup.com/>`_
-
-
-Features
---------
-
-* You can use your customized InnoSetup Script.
-
-* installer metadata over setup() metadata
-
-* generate AppId(GUID) from setup() metadata
-  See the innosetup.InnoScript.appid property.
-
-* bundle exe and com dll and dependent libs and resources
-
-* bundle msvcr and mfc and their manifest
-
-* bundle all installed InnoSetup's language file
-  (If there is no valid [Languages] section.)
-
-* create `windows` exe's shortcut
-
-* register `com_server` and `service`
-
-* check the Windows version with Python version
-
-* fix a problem py2exe.mf misses some modules (ex. win32com.shell)
-
-
-An example
-----------
-::
-
-    from distutils.core import setup
-    import py2exe, innosetup
-
-    # All options are same as py2exe options.
-    setup(
-        name='example',
-        version='1.0.0.0',
-        license='PSF or other',
-        author='you',
-        author_email='you@your.domain',
-        description='description',
-        url='http://www.your.domain/example', # generate AppId from this url
-        options={
-            'py2exe': {
-                # `innosetup` gets the `py2exe`'s options.
-                'compressed': True,
-                'optimize': 2,
-                'bundle_files': 3,
-                },
-            'innosetup': {
-                # user defined iss file path or iss string
-                'inno_script': innosetup.DEFAULT_ISS, # default is ''
-                # bundle msvc files
-                'bundle_vcr': True, # default is True
-                # zip setup file
-                'zip': False, # default is False, bool() or zip file name
-                # create shortcut to startup if you want. 
-                'regist_startup': True, # default is False
-                }
-            },
-        com_server=[
-            {'modules': ['your_com_server_module'], 'create_exe': False},
-            ],
-        # and other metadata ...
-        )
-
-Do the command `setup.py innosetup`.
-Then you get InnoSetup script file named `dist\distutils.iss` and
-the installation file named `dist\example-1.0.0.0.exe`.
-
-
-History
--------
-
-0.6.3
------
-
-* change versioning policy (remove build number).
-
-* add utf-8 bom to .iss file by Jerome Ortais, thanx.
-
-* pick up `COPYING` file for `[setup]/LicenseFile` by Jerome Ortais, thanx.
-
-0.6.0.2
-~~~~~~~
-
-* add `regist_startup` option for create shortcut to startup.
-
-0.6.0.1
-~~~~~~~
-
-* fix metadata and unicode by surgo, thanx.
-
-* set `DEFAULT_ISS` to empty because `Inno Setup 5.3.9` is released.
-
-* fix a problem that `py2exe` includes MinWin's ApiSet Stub DLLs on Windows 7.
-
-0.6.0.0
-~~~~~~~
-
-* support bundling tcl files
-
-* change OutputBaseFilename
-
-0.5.0.1
-~~~~~~~
-
-* improve update install support
-
-0.5.0.0
-~~~~~~~
-
-* add DEFAULT_ISS, manifest, srcname, srcnames
-
-* add `zip` option
-
-* fix `bundle_files=1` option problem (always bundle pythonXX.dll)
-
-* add `DefaultGroupName`, `InfoBeforeFile`, `LicenseFile` into `[Setup]`
-  section
-
-0.4.0.0
-~~~~~~~
-
-* support service cmdline_style options
-
-* rewrite codes around iss file
-
-0.3.0.0
-~~~~~~~
-
-* improve the InnoSetup instllation path detection
-
-* add `inno_setup_exe` option
-
-0.2.0.0
-~~~~~~~
-
-* handle `py2exe`'s command options
-
-* add `bundle_vcr` option
-
-0.1.0.0
-~~~~~~~
-
-* first release
-
-
-"""
-import sys, imp, os, platform, subprocess, codecs, ctypes, uuid, _winreg, \
-       distutils.msvccompiler
-from zipfile import ZipFile, ZIP_DEFLATED
+import os
+import sys
+import platform
+import imp
+import subprocess
+import ctypes
+import codecs
+import uuid
+import _winreg
+import distutils.msvccompiler
+from modulefinder import packagePathMap
+from zipfile import (ZipFile, ZIP_DEFLATED)
 from xml.etree import ElementTree
-import win32api # for read pe32 resource
+
+import win32api  # for read pe32 resource
 from py2exe.build_exe import *
 from py2exe import build_exe, mf as modulefinder
 
@@ -233,7 +83,7 @@ manifest.template = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 
 def load_manifest(handle):
     """get the first manifest string from HMODULE"""
-    for restype in (RT_MANIFEST, ): #win32api.EnumResourceTypes(handle)
+    for restype in (RT_MANIFEST, ):  # win32api.EnumResourceTypes(handle)
         for name in win32api.EnumResourceNames(handle, restype):
             return win32api.LoadResource(handle, restype, name).decode('utf_8')
 
@@ -286,13 +136,13 @@ def findfiles(filenames, *conditions):
         filename = filename.lower()
         for i in conditions:
             i = i.lower()
-            if i.startswith('.'): #compare ext
+            if i.startswith('.'):  # compare ext
                 if os.path.splitext(filename)[1] != i:
                     return
-            elif i.count('.') == 1: #compare basename
+            elif i.count('.') == 1:  # compare basename
                 if os.path.basename(filename) != i:
                     return
-            else: # contains
+            else:  # contains
                 if i not in os.path.basename(filename):
                     return
         return True
@@ -308,7 +158,7 @@ hkshortnames = {
     'HKCC': _winreg.HKEY_CURRENT_CONFIG,
     'HKDD': _winreg.HKEY_DYN_DATA,
     'HKPD': _winreg.HKEY_PERFORMANCE_DATA,
-    }
+}
 
 
 def getregvalue(path, default=None):
@@ -398,13 +248,15 @@ class InnoScript(object):
         lines = []
         for line in s.splitlines():
             if line.startswith('[') and ']' in line:
-                if lines: yield firstline, sectionname, lines
+                if lines:
+                    yield firstline, sectionname, lines
                 firstline = line
                 sectionname = line[1:line.index(']')].strip()
                 lines = []
             else:
                 lines.append(line)
-        if lines: yield firstline, sectionname, lines
+        if lines:
+            yield firstline, sectionname, lines
 
     def chop(self, filename, dirname=''):
         """get relative path"""
@@ -494,7 +346,8 @@ class InnoScript(object):
             doc = ElementTree.fromstring(load_manifest(sys.dllhandle))
             for e in doc.getiterator('{urn:schemas-microsoft-com:asm.v1}'
                                      'assemblyIdentity'):
-                if e.attrib['name'] == assemblename: break
+                if e.attrib['name'] == assemblename:
+                    break
             else:
                 raise EnvironmentError('no msvcr manifets file found')
 
@@ -566,7 +419,6 @@ class InnoScript(object):
         for k in sorted(iss_metadata):
             fp.write(('%s=%s\n' % (k, iss_metadata[k], )).encode('utf_8'))
 
-
         self.iss_metadata = {}
         self.iss_metadata.update(iss_metadata)
         self.iss_metadata.update(user)
@@ -583,7 +435,7 @@ class InnoScript(object):
         files.extend(self.builder.comserver_files)
         if self.builder.bundle_vcr:
             files.extend(self.msvcfiles)
-        files.extend(self.builder.lib_files) #include data_files
+        files.extend(self.builder.lib_files)  # include data_files
 
         # problem with py2exe
         if self.builder.bundle_files < 2:
@@ -601,10 +453,12 @@ class InnoScript(object):
 
         stored = set()
         for filename in files:
-            if filename in excludes: continue
+            if filename in excludes:
+                continue
             relname = self.chop(filename)
             # user operation given or already wrote
-            if relname in ''.join(lines) or relname in stored: continue
+            if relname in ''.join(lines) or relname in stored:
+                continue
 
             flags = list(self.default_flags)
             place = ''
@@ -637,7 +491,8 @@ class InnoScript(object):
                         extraargs['BeforeInstall'] = \
                             "UnregisterPywin32Service('{app}\\%s')" % relname
 
-            else: # isdir
+            else:
+                # isdir
                 if filename.startswith(self.builder.dist_dir):
                     place = relname
                 relname += '\\*'
@@ -656,7 +511,8 @@ class InnoScript(object):
     def _iter_bin_files(self, attrname, lines=[]):
         for filename in getattr(self.builder, attrname, []):
             relname = self.chop(filename)
-            if relname in ''.join(lines): continue
+            if relname in ''.join(lines):
+                continue
             yield filename, relname
 
     def handle_iss_run(self, lines, fp):
@@ -709,8 +565,8 @@ class InnoScript(object):
                     Parameters="/unregister",
                     WorkingDir="{app}",
                     Flags='runhidden',
-                    StatusMsg=
-                        "Unregistering %s..." % os.path.basename(filename),
+                    StatusMsg="Unregistering %s..." \
+                            % os.path.basename(filename),
                     )
 
         it = self._iter_bin_files('service_exe_files', lines)
@@ -722,8 +578,8 @@ class InnoScript(object):
                     Parameters="-remove",
                     WorkingDir="{app}",
                     Flags='runhidden',
-                    StatusMsg=
-                        "Unregistering %s..." % os.path.basename(filename),
+                    StatusMsg="Unregistering %s..." \
+                            % os.path.basename(filename),
                     )
             elif cmdline_style == 'pywin32':
                 fp.issline(
@@ -731,16 +587,16 @@ class InnoScript(object):
                     Parameters="stop",
                     WorkingDir="{app}",
                     Flags='runhidden',
-                    StatusMsg=
-                        "Stopping %s..." % os.path.basename(filename),
+                    StatusMsg="Stopping %s..." \
+                            % os.path.basename(filename),
                     )
                 fp.issline(
                     Filename="{app}\\%s" % filename,
                     Parameters="remove",
                     WorkingDir="{app}",
                     Flags='runhidden',
-                    StatusMsg=
-                        "Unregistering %s..." % os.path.basename(filename),
+                    StatusMsg="Unregistering %s..." \
+                            % os.path.basename(filename),
                     )
 
     def handle_iss_icons(self, lines, fp):
@@ -770,7 +626,8 @@ class InnoScript(object):
         innopath = os.path.dirname(self.innoexepath)
         for root, dirs, files in os.walk(innopath):
             for basename in files:
-                if not basename.lower().endswith('.isl'): continue
+                if not basename.lower().endswith('.isl'):
+                    continue
                 filename = self.chop(os.path.join(root, basename), innopath)
                 fp.issline(
                     Name=os.path.splitext(basename)[0],
@@ -904,17 +761,8 @@ class innosetup(py2exe):
 
 
 #
-# register command
-#
-import distutils.command
-distutils.command.__all__.append('innosetup')
-sys.modules['distutils.command.innosetup'] = sys.modules[__name__]
-
-
-#
 # fix a problem py2exe.mf misses some modules
 #
-from modulefinder import packagePathMap
 class PackagePathMap(object):
     def get(self, name, default=None):
         try:
@@ -931,17 +779,18 @@ class PackagePathMap(object):
         except ImportError:
             pass
         return default
+
     def __setitem__(self, name, value):
         packagePathMap[name] = value
 modulefinder.packagePathMap = PackagePathMap()
 
 
-#
 # fix a problem that `py2exe` includes MinWin's ApiSet Stub DLLs on Windows 7.
-#
 # http://www.avertlabs.com/research/blog/index.php/2010/01/05/windows-7-kernel-api-refactoring/
+
 if sys.getwindowsversion()[:2] >= (6, 1):
     build_exe._isSystemDLL = build_exe.isSystemDLL
+
     def isSystemDLL(pathname):
         if build_exe._isSystemDLL(pathname):
             return True
@@ -956,33 +805,3 @@ if sys.getwindowsversion()[:2] >= (6, 1):
             pass
         return False
     build_exe.isSystemDLL = isSystemDLL
-
-
-if __name__ == '__main__':
-    sys.modules['innosetup'] = sys.modules[__name__]
-    from distutils.core import setup
-    setup(
-        name='innosetup',
-        version='0.6.3',
-        license='PSF',
-        description=__doc__.splitlines()[0],
-        long_description=__doc__,
-        author='chrono-meter@gmx.net',
-        author_email='chrono-meter@gmx.net',
-        url='http://pypi.python.org/pypi/innosetup',
-        platforms='win32, win64',
-        classifiers=[
-            #'Development Status :: 4 - Beta',
-            'Development Status :: 5 - Production/Stable',
-            'Environment :: Win32 (MS Windows)',
-            'Intended Audience :: Developers',
-            'License :: OSI Approved :: Python Software Foundation License',
-            'Operating System :: Microsoft :: Windows :: Windows NT/2000',
-            'Programming Language :: Python',
-            'Topic :: Software Development :: Build Tools',
-            'Topic :: Software Development :: Libraries :: Python Modules',
-            ],
-        py_modules=['innosetup', ],
-        )
-
-
