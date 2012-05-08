@@ -3,6 +3,11 @@
 Changes
 -------
 
+0.6.5
+^^^^^
+
+* move download url to github.
+
 0.6.4
 ^^^^^
 

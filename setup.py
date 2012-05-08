@@ -6,8 +6,8 @@ import sys
 
 from distutils.core import setup, Command
 
+from innosetup import (__version__, __doc__)
 
-from innosetup import __version__
 
 def read_file(name):
     path = os.path.join(os.path.dirname(__file__), name)
@@ -21,6 +21,8 @@ except IOError:
     readme = ""
     changes = ""
 
+project_url = 'https://github.com/Surgo/python-innosetup'
+
 
 setup(
     name='innosetup',
@@ -28,8 +30,9 @@ setup(
     packages=['innosetup', ],
     author='chrono-meter@gmx.net',
     author_email='chrono-meter@gmx.net',
-    url='https://github.com/Surgo/python-innosetup',
-    description='distutils extension module - create an installer by InnoSetup.',
+    url=project_url,
+    download_url='%s/zipball/%s' % (project_url, __version__),
+    description=__doc__,
     long_description="%s\n\n%s" % (readme, changes),
     keywords=['distutils'],
     install_requires=['pywin32', 'py2exe', ],
