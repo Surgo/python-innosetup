@@ -3,7 +3,7 @@
 
 """distutils extension module - create an installer by InnoSetup."""
 
-__version__ = '0.6.6'
+__version__ = '0.6.7'
 
 
 import sys

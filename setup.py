@@ -46,6 +46,9 @@ setup(
         'Operating System :: Microsoft :: Windows :: Windows XP',
         'Operating System :: Microsoft :: Windows :: Windows 7',
         'Programming Language :: Python :: 2 :: Only',
+        'Programming Language :: Python :: 2.5',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
         'Topic :: Software Development :: Build Tools',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ]
