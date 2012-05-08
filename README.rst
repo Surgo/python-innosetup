@@ -68,6 +68,6 @@ Example
         # and other metadata ...
         )
 
-Do the command `setup.py innosetup`.
-Then you get InnoSetup script file named `dist\distutils.iss` and
-the installation file named `dist\<name>-<version>.exe`.
+Do the command ``setup.py innosetup``.
+Then you get InnoSetup script file named ``dist\distutils.iss`` and
+the installation file named ``dist\<name>-<version>.exe``.
