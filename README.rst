@@ -2,8 +2,6 @@
 A Python innosetup library
 ==========================
 
-distutils extension module - create an installer by InnoSetup.
-
 Requirements
 ------------
 
