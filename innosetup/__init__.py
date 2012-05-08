@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+"""distutils extension module - create an installer by InnoSetup."""
+
 __version__ = '0.6.6'
 
 
