@@ -34,7 +34,9 @@ setup(
     description=__doc__,
     long_description='%s\n\n%s' % (readme, changes),
     keywords=['distutils'],
-    install_requires=['pywin32', 'py2exe', ],
+    install_requires=[],
+    # Can't install via pip / easy_install
+    # install_requires=['pywin32', 'py2exe', ],
     license='PSF',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
