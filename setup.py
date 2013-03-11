@@ -2,9 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
-import sys
-
-from distutils.core import setup, Command
+from distutils.core import setup
 
 from innosetup import (__version__, __doc__)
 

@@ -394,9 +394,10 @@ class InnoScript(object):
                 iss_metadata['LicenseFile'] = os.path.abspath(filename)
                 break
 
-        # Python 2.6 doesn't support Windows 9x and me.
+        # http://www.jrsoftware.org/ishelp/index.php?topic=setup_minversion
+        # Inno Setup no longer supports Windows 95/98/Me
         if sys.version_info > (2, 6):
-            iss_metadata['MinVersion'] = '5.0,5.0'
+            iss_metadata['MinVersion'] = '0,5.0'
 
         # handle user operations
         user = {}
