@@ -755,9 +755,9 @@ class innosetup(py2exe):
         py2exe.run(self)
 
         script = InnoScript(self)
-        print "*** creating the inno setup script ***"
+        #print "*** creating the inno setup script ***"
         script.create()
-        print "*** compiling the inno setup script ***"
+        #print "*** compiling the inno setup script ***"
         script.compile()
 
 
