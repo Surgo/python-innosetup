@@ -9,7 +9,7 @@ import subprocess
 import ctypes
 import codecs
 import uuid
-import _winreg
+import winreg
 import distutils.msvccompiler
 from modulefinder import packagePathMap
 from zipfile import (ZipFile, ZIP_DEFLATED)
@@ -151,13 +151,13 @@ def findfiles(filenames, *conditions):
 
 
 hkshortnames = {
-    'HKLM': _winreg.HKEY_LOCAL_MACHINE,
-    'HKCU': _winreg.HKEY_CURRENT_USER,
-    'HKCR': _winreg.HKEY_CLASSES_ROOT,
-    'HKU': _winreg.HKEY_USERS,
-    'HKCC': _winreg.HKEY_CURRENT_CONFIG,
-    'HKDD': _winreg.HKEY_DYN_DATA,
-    'HKPD': _winreg.HKEY_PERFORMANCE_DATA,
+    'HKLM': winreg.HKEY_LOCAL_MACHINE,
+    'HKCU': winreg.HKEY_CURRENT_USER,
+    'HKCR': winreg.HKEY_CLASSES_ROOT,
+    'HKU': winreg.HKEY_USERS,
+    'HKCC': winreg.HKEY_CURRENT_CONFIG,
+    'HKDD': winreg.HKEY_DYN_DATA,
+    'HKPD': winreg.HKEY_PERFORMANCE_DATA,
 }
 
 
@@ -178,14 +178,14 @@ def getregvalue(path, default=None):
     elif root in hkshortnames:
         root = hkshortnames[root]
     else:
-        root = _winreg.HKEY_CURRENT_USER
+        root = winreg.HKEY_CURRENT_USER
         subkey = path
 
     subkey, name = subkey.rsplit('\\', 1)
 
     try:
-        handle = _winreg.OpenKey(root, subkey)
-        value, typeid = _winreg.QueryValueEx(handle, name)
+        handle = winreg.OpenKey(root, subkey)
+        value, typeid = winreg.QueryValueEx(handle, name)
         return value
     except EnvironmentError:
         return default
@@ -197,7 +197,7 @@ class IssFile(file):
 
     def issline(self, **kwargs):
         args = []
-        for k, v in kwargs.items():
+        for k, v in list(kwargs.items()):
             if k not in self.noescape:
                 # ' -> ''
                 v = '"%s"' % v
@@ -273,7 +273,7 @@ class InnoScript(object):
     @property
     def metadata(self):
         metadata = dict((k, v or '') for k, v in
-                        self.builder.distribution.metadata.__dict__.items())
+                        list(self.builder.distribution.metadata.__dict__.items()))
         return metadata
 
     @property
@@ -293,7 +293,7 @@ class InnoScript(object):
     @property
     def iss_consts(self):
         metadata = self.metadata
-        return dict((k, v % metadata) for k, v in self.consts_map.items())
+        return dict((k, v % metadata) for k, v in list(self.consts_map.items()))
 
     @property
     def innoexepath(self):
@@ -375,7 +375,7 @@ class InnoScript(object):
     def handle_iss_setup(self, lines, fp):
         metadata = self.metadata
         iss_metadata = dict((k, v % metadata)
-                            for k, v in self.metadata_map.items())
+                            for k, v in list(self.metadata_map.items()))
         iss_metadata['OutputDir'] = self.builder.dist_dir
         iss_metadata['AppId'] = self.appid
 
@@ -413,9 +413,9 @@ class InnoScript(object):
                 fp.write(line + '\n')
 
         if 'AppId' in iss_metadata:
-            print('There is no "AppId" in "[Setup]" section.\n'
+            print(('There is no "AppId" in "[Setup]" section.\n'
             '"AppId" is automatically generated from metadata (%s),'
-            'not a random value.' % iss_metadata['AppId'])
+            'not a random value.' % iss_metadata['AppId']))
 
         for k in sorted(iss_metadata):
             fp.write(('%s=%s\n' % (k, iss_metadata[k], )).encode('utf_8'))
@@ -660,7 +660,7 @@ class InnoScript(object):
             'PYTHON_DIR': sys.prefix,
             'PYTHON_DLL': modname(sys.dllhandle),
             })
-        consts.update((k.upper(), v) for k, v in self.metadata.items())
+        consts.update((k.upper(), v) for k, v in list(self.metadata.items()))
         for k in sorted(consts):
             fp.write(('#define %s "%s"\n' % (k, consts[k], )).encode('utf_8'))
 
@@ -694,7 +694,7 @@ class InnoScript(object):
 
         # zip the setup file
         if self.builder.zip:
-            if isinstance(self.builder.zip, basestring):
+            if isinstance(self.builder.zip, str):
                 zipname = self.builder.zip
             else:
                 zipname = setupfile + '.zip'
@@ -755,9 +755,9 @@ class innosetup(py2exe):
         py2exe.run(self)
 
         script = InnoScript(self)
-        print "*** creating the inno setup script ***"
+        #print "*** creating the inno setup script ***"
         script.create()
-        print "*** compiling the inno setup script ***"
+        #print "*** compiling the inno setup script ***"
         script.compile()
 
 
